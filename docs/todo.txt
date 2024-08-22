@@ -1,0 +1,2 @@
+- Add Middleware for Autentication, Logging
+- Graceful shutdown of the server
