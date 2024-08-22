@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: httpserver
+  namespace: httpserver
+  labels:
+    app.kubernetes.io/name: httpserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: httpserver
+  template:
+    metadata:
+      name: httpserver
+      labels:
+        app.kubernetes.io/name: httpserver
+    spec:
+      containers:
+        - name: httpserver
+          image: httpserver
+          resources:
+            requests:
+              memory: 50Mi
+            limits:
+              memory: 100Mi
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 20
+      dnsPolicy: ClusterFirst
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: httpserver
+  namespace: httpserver
+  labels:
+    app.kubernetes.io/name: httpserver
+spec:
+  selector:
+    app.kubernetes.io/name: httpserver
+  type: ClusterIP
+  ports:
+  - name: traffic-port
+    protocol: TCP
+    port: 20000
+    targetPort: 20000
