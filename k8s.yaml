@@ -1,24 +1,24 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: httpserver
-  namespace: httpserver
+  name: gohttpserver
+  namespace: staging
   labels:
-    app.kubernetes.io/name: httpserver
+    app.kubernetes.io/name: gohttpserver
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: httpserver
+      app.kubernetes.io/name: gohttpserver
   template:
     metadata:
-      name: httpserver
+      name: gohttpserver
       labels:
-        app.kubernetes.io/name: httpserver
+        app.kubernetes.io/name: gohttpserver
     spec:
       containers:
-        - name: httpserver
-          image: httpserver
+        - name: gohttpserver
+          image: gohttpserver
           resources:
             requests:
               memory: 50Mi
@@ -32,13 +32,13 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: httpserver
-  namespace: httpserver
+  name: gohttpserver
+  namespace: staging
   labels:
-    app.kubernetes.io/name: httpserver
+    app.kubernetes.io/name: gohttpserver
 spec:
   selector:
-    app.kubernetes.io/name: httpserver
+    app.kubernetes.io/name: gohttpserver
   type: ClusterIP
   ports:
   - name: traffic-port

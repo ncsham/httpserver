@@ -5,5 +5,5 @@ Basic HTTP Server in Golang
 - https://minikube.sigs.k8s.io/docs/handbook/pushing/#1-pushing-directly-to-the-in-cluster-docker-daemon-docker-env
 - `eval $(minikube docker-env)`
 - `docker build -t httpserver .`
-- Apply the k8s manifest (create httpserver namespace if doesn't exit or modify the manifest)
+- Apply the k8s manifest (create staging namespace if doesn't exist or modify the manifest)
   - `kubectl apply -f k8s.yaml`
