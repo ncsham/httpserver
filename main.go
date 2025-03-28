@@ -32,6 +32,9 @@ func main() {
 	// Setup graceful shutdown
 	go setupGracefulShutdown(server)
 
+	// Start Prometheus server
+	go initPrometheus()
+
 	logInfo("main").Str("hostname", hostname).Str("packageVersion", packageVersion).Str("packageCommit", packageCommit).Str("packageBuildTime", packageBuildTime).Str("packageCommitTimestamp", packageCommitTimestamp).Str("startedAt", startedAt).Msg("Starting Server")
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

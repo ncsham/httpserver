@@ -23,3 +23,5 @@ go.work.sum
 
 # env file
 .env
+
+push_to_ecr.sh

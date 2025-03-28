@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -32,7 +33,10 @@ func getRouter() {
 	router = mux.NewRouter().StrictSlash(true)
 
 	// Apply the logging middleware to all routes
-	router.Use(loggingMiddleware)
+	router.Use(customMiddleware)
+
+	// Add NotFoundHandler
+	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 }
 
 func registerHandlers() {
@@ -41,29 +45,55 @@ func registerHandlers() {
 	}
 }
 
-// loggingMiddleware generates a unique request ID, logs the request, and passes the ID to the next handler
-func loggingMiddleware(next http.Handler) http.Handler {
+// customMiddleware generates a unique request ID, logs the request, and passes the ID to the next handler
+func customMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-
-		// Generate a unique request ID
 		requestId := genUniqId()
 
-		// Add it to the response headers
 		w.Header().Set("X-Request-ID", requestId)
-
-		// Create a new context with the request ID
 		ctx := context.WithValue(r.Context(), requestIDKey, requestId)
-
-		// Create a new http.Request with the new context
 		r = r.WithContext(ctx)
 
-		// Call the next handler
-		next.ServeHTTP(w, r)
+		// Wrap the ResponseWriter to capture status code
+		rw := &responseWriter{ResponseWriter: w}
+
+		next.ServeHTTP(rw, r)
+
+		duration := time.Since(start)
+		path := r.URL.Path
+		if rw.status == 0 {
+			rw.status = http.StatusOK
+		}
+
+		// Record metrics
+		httpRequestsTotal.WithLabelValues(
+			strconv.Itoa(rw.status),
+			r.Method,
+			path, // Use actual path for known routes, will be set in notFoundHandler for 404s
+		).Inc()
+
+		httpRequestsSummary.WithLabelValues(path).Observe(duration.Seconds())
 
 		// Log the request details
-		go logInfo(requestId).Str("duration", time.Since(start).String()).Str("method", r.Method).Str("uri", r.RequestURI).Str("remoteAddr", r.RemoteAddr).Msg("")
+		go logInfo(requestId).
+			Str("duration", duration.String()).
+			Str("method", r.Method).
+			Str("uri", r.RequestURI).
+			Str("remoteAddr", r.RemoteAddr).
+			Int("status", rw.status).
+			Msg("Served")
 	})
+}
+
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(status int) {
+	rw.status = status
+	rw.ResponseWriter.WriteHeader(status)
 }
 
 // GetRequestID retrieves the request ID from the context

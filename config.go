@@ -11,4 +11,7 @@ var (
 	httpReadTimeout         = getEnv("HTTP_READ_TIMEOUT", "10s")
 	httpWriteTimeout        = getEnv("HTTP_WRITE_TIMEOUT", "10s")
 	gracefulShutdownTimeout = getEnv("GRACEFUL_SHUTDOWN_TIMEOUT", "10s")
+
+	promMetricsPath = getEnv("PROMETHEUS_PATH", "/metrics")
+	promMetricsPort = getEnv("PROMETHEUS_PORT", "20001")
 )
