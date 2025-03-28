@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: gohttpserver
-  namespace: staging
+  namespace: default
   labels:
     app.kubernetes.io/name: gohttpserver
 spec:
@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: gohttpserver
-          image: gohttpserver
+          image: httpserver
           resources:
             requests:
               memory: 50Mi
@@ -33,7 +33,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: gohttpserver
-  namespace: staging
+  namespace: default
   labels:
     app.kubernetes.io/name: gohttpserver
 spec:
@@ -45,3 +45,22 @@ spec:
     protocol: TCP
     port: 20000
     targetPort: 20000
+  - name: metrics
+    protocol: TCP
+    port: 20001
+    targetPort: 20001
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: gohttpserver
+  name: gohttpserver
+  namespace: default
+spec:
+  endpoints:
+    - path: /metrics
+      port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gohttpserver
